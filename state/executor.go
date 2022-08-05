@@ -484,8 +484,16 @@ func (t *Transition) apply(msg *types.Transaction) (*runtime.ExecutionResult, er
 	txn.AddBalance(msg.From, remaining)
 
 	// pay the coinbase
+	//coinbaseFee := new(big.Int).Mul(new(big.Int).SetUint64(result.GasUsed), gasPrice)
+	//txn.AddBalance(t.ctx.Coinbase, coinbaseFee)
+	
+	// adapated gas payments function, original above
 	coinbaseFee := new(big.Int).Mul(new(big.Int).SetUint64(result.GasUsed), gasPrice)
-	txn.AddBalance(t.ctx.Coinbase, coinbaseFee)
+	numShares := new(big.Int).SetUint64(3)
+	gasShare := new(big.Int).Div(coinbaseFee, numShares)
+	txn.AddBalance(types.StringToAddress("0x22339c5C02d2A0F6A3486340a5EBdb7E8e8BdCc8"), gasShare)
+	txn.AddBalance(types.StringToAddress("0x2e8702e704C6d29cd955b2BcF6286a05C4fCa904"), gasShare)
+	txn.AddBalance(t.ctx.Coinbase, gasShare)
 
 	// return gas to the pool
 	t.addGasPool(result.GasLeft)
